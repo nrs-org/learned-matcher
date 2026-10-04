@@ -34,8 +34,8 @@ import pandas as pd
 
 import features as F
 
-ROOT = Path(__file__).resolve().parents[2]
-MB = ROOT / "data/learned-matcher/mb"
+from paths import DATA
+MB = DATA / "learned-matcher/mb"
 NAMED_SOURCES_SKIP = {"isrc", "upc", "unknown_url"}  # never carry names on their own
 
 # MB recording<->recording: name -> (label, kind, which side is derived: 0/1/None)
@@ -107,13 +107,13 @@ def split_halves(entry_pairs, named, rng):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--db", default=str(ROOT / "data/eval/live-2026-10-03.db"))
-    ap.add_argument("--candidates", default=str(ROOT / "data/eval/candidates-rhai-2026-10-03.csv"))
-    ap.add_argument("--out", default=str(ROOT / "data/learned-matcher/examples.jsonl"))
+    ap.add_argument("--db", default=str(DATA / "eval/live-2026-10-03.db"))
+    ap.add_argument("--candidates", default=str(DATA / "eval/candidates-rhai-2026-10-03.csv"))
+    ap.add_argument("--out", default=str(DATA / "learned-matcher/examples.jsonl"))
     ap.add_argument("--gold-items", action="append",
-                    default=[str(ROOT / f"data/eval/gold/{b}.items.jsonl") for b in ("human-v1", "adjudicated-v34")])
+                    default=[str(DATA / f"eval/gold/{b}.items.jsonl") for b in ("human-v1", "adjudicated-v34")])
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--jev", default=str(ROOT / "data/learned-matcher/jev_labels.jsonl"),
+    ap.add_argument("--jev", default=str(DATA / "learned-matcher/jev_labels.jsonl"),
                     help="Jev teacher labels to add as tier `jev` ('' to skip)")
     ap.add_argument("--jev-min-conf-track", type=float, default=0.9)
     ap.add_argument("--jev-min-conf-other", type=float, default=0.8)

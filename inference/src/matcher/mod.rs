@@ -2,7 +2,7 @@
 //! in, class probabilities and relation-head outputs out. The verdict policy
 //! (thresholds, DEFER band) stays in the calling Rhai script.
 //!
-//! A bundle directory (written by `train/learned-matcher/bundle.py`) holds
+//! A bundle directory (written by `train/bundle.py`) holds
 //! `model.txt`, `kind.txt`, `direction.txt`, `structure.txt`, `kinds.json` and
 //! `encoder/{config.json,tokenizer.json,model.safetensors}`.
 //!

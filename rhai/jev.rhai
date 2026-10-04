@@ -3,11 +3,11 @@
 // A module: match scripts `import "jev" as jev;` inside the functions that use
 // it (imports at the top level aren't visible to hooks the host calls).
 // This file owns the evidence view and the answer → verdict mapping; the
-// questions are config/jev/<entry type>.json, sent verbatim (key order kept).
+// questions are rhai/jev/<entry type>.json, sent verbatim (key order kept).
 // The transport (HTTP, retry, concurrency, response cache) is the inference
 // cdylib's `inference_typesafe_*` API (feature `typesafe`).
 //
-// Questions are prompt v2.1 from train/learned-matcher/jev_client.py, aligned
+// Questions are prompt v2.1 from train/jev_client.py, aligned
 // with the learned matcher's ontology. Tracks: identity (same_identity /
 // derived / sibling / unrelated) plus kind and direction for derived pairs.
 // Other types: identity only (same_identity / different_identity).
@@ -129,7 +129,7 @@ fn refine_pairs(j, items) {
     out
 }
 
-// The questions per entry type, as JSON text (config/jev/<type>.json).
+// The questions per entry type, as JSON text (rhai/jev/<type>.json).
 fn questions() {
     let qs = #{};
     for t in ["track", "artist", "release", "release_group"] {

@@ -12,11 +12,11 @@ import time
 import lightgbm as lgb
 import pandas as pd
 
-from features import ROOT, Encoder, Library, pair_features
+from features import DATA, Encoder, Library, pair_features
 from policy import class_names, merge_guard, verdicts
 from structure import structure_probs
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 
 def main():
@@ -26,8 +26,8 @@ def main():
     args = ap.parse_args()
     mdir = OUT / "models" / args.model
     t0 = time.time()
-    lib = Library(str(ROOT / "data/eval/live-2026-10-03.db"))
-    cand = pd.read_csv(ROOT / "data/eval/candidates-rhai-2026-10-03.csv", low_memory=False,
+    lib = Library(str(DATA / "eval/live-2026-10-03.db"))
+    cand = pd.read_csv(DATA / "eval/candidates-rhai-2026-10-03.csv", low_memory=False,
                        usecols=["verdict", "type", "entry_a", "entry_b"])
     cand = cand[cand.verdict.isin(["MERGE", "RELATE", "DISTINCT"])].rename(columns={"verdict": "rhai"}).reset_index(drop=True)
     # Cross-type candidates (20% of the pool) are DISTINCT without scoring,

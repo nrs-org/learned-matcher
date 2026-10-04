@@ -23,8 +23,9 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]
-ENC_DIR = ROOT / "data/learned-matcher/encoder"
+from paths import DATA
+
+ENC_DIR = DATA / "learned-matcher/encoder"
 VIDEO_SOURCES = {"youtube", "nicovideo", "soundcloud", "bilibili"}
 DIM = 256
 PAIR_DIMS = 64  # dims of |u-v| and u*v fed to the head
@@ -143,7 +144,7 @@ class Library:
         for p, eid in self.entry_of.items():
             self.entry_pairs[eid].append(p)
         # optional MB year facts (mb_years.sql): who recorded a song first
-        mb = ROOT / "data/learned-matcher/mb"
+        mb = DATA / "learned-matcher/mb"
         self.rec_year, self.rec_works, self.work_year = {}, defaultdict(set), {}
         if (mb / "rec_year.tsv").exists():
             for line in (mb / "rec_year.tsv").read_text().splitlines():

@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import average_precision_score
 
-from features import ROOT
+from features import DATA
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 from policy import CLASSES, merge_guard, verdicts
 META = {"tier", "type", "label", "kind", "derived", "split", "entry_a", "entry_b", "why", "item_id", "weight", "stratum", "batch"}
 VERDICT_CLASS = {"MERGE": "same", "RELATE": "related", "DISTINCT": "unrelated"}
@@ -32,7 +32,7 @@ def recall_at_precision(y, s, target=0.99):
 
 
 def rhai_lookup():
-    cand = pd.read_csv(ROOT / "data/eval/candidates-rhai-2026-10-03.csv", low_memory=False,
+    cand = pd.read_csv(DATA / "eval/candidates-rhai-2026-10-03.csv", low_memory=False,
                        usecols=["verdict", "entry_a", "entry_b"])
     cand = cand[cand.verdict.isin(VERDICT_CLASS)]
     a, b = cand.entry_a.to_numpy(), cand.entry_b.to_numpy()
@@ -135,7 +135,7 @@ def main():
     # halves, half-view negatives and Jev labels. Silver-set pairs are
     # excluded so the silver test stays untouched.
     silver = set()
-    sp = ROOT / "data/eval/gold/silver-jev-v1.items.jsonl"
+    sp = DATA / "eval/gold/silver-jev-v1.items.jsonl"
     if sp.exists():
         for l in sp.read_text().splitlines():
             it = json.loads(l)

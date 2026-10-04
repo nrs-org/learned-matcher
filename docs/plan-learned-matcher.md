@@ -162,7 +162,7 @@ generated dev data or the September LLM-adjudicated labels.
 
 ### What exists
 
-`train/learned-matcher/` (uv project; outputs in gitignored `data/`):
+`train/` (uv project; outputs in gitignored `data/`):
 
 | Script | Does |
 |---|---|

@@ -18,9 +18,9 @@ import json
 import numpy as np
 import pandas as pd
 
-from features import ROOT
+from features import DATA
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 CLS = {"same_identity": "same", "derived": "related", "sibling": "related", "related_variant": "related",
        "unrelated": "unrelated", "different_identity": "not_same", "unsure": "unsure"}
 

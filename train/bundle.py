@@ -13,11 +13,12 @@ Default output: data/learned-matcher/bundle/<model>/
 import argparse
 import json
 import shutil
+from pathlib import Path
 
-from features import ROOT
+from features import DATA
 from gguf_export import export as export_gguf
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 
 def main():
@@ -27,7 +28,7 @@ def main():
     ap.add_argument("--out")
     args = ap.parse_args()
     mdir, rdir = OUT / "models" / args.model, OUT / "models" / args.rel
-    out = OUT / "bundle" / args.model if args.out is None else ROOT / args.out
+    out = OUT / "bundle" / args.model if args.out is None else Path(args.out)
     (out / "encoder").mkdir(parents=True, exist_ok=True)
     shutil.copy(mdir / "model.txt", out / "model.txt")
     for f in ("kind.txt", "direction.txt", "structure.txt", "kinds.json"):

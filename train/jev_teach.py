@@ -16,10 +16,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from features import ROOT, Library
+from features import DATA, Library
 from jev_client import Jev, build_view
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 STRATA = [
     ("track new merge", lambda p: (p.type == "track") & (p.verdict == "MERGE") & (p.rhai == "DISTINCT"), 1500),
@@ -40,7 +40,7 @@ STRATA = [
 
 def _video_only_set():
     import sqlite3
-    con = sqlite3.connect(f"file:{ROOT / 'data/eval/live-2026-10-03.db'}?mode=ro", uri=True)
+    con = sqlite3.connect(f"file:{DATA / 'eval/live-2026-10-03.db'}?mode=ro", uri=True)
     srcs = {}
     for eid, s in con.execute("select distinct es.entry_id, es.source from entry_source es join entry_alias a on a.source=es.source and a.identifier=es.identifier"):
         srcs.setdefault(eid, set()).add(s)
@@ -91,7 +91,7 @@ def main():
     pool = pd.read_parquet(OUT / "models" / args.model / "pool_preds.parquet")
     held = set()
     for b in ("human-v1", "adjudicated-v34"):
-        for l in open(ROOT / f"data/eval/gold/{b}.items.jsonl"):
+        for l in open(DATA / f"eval/gold/{b}.items.jsonl"):
             it = json.loads(l)
             held.update((it["a"]["entry_id"], it["b"]["entry_id"]))
     labeled = set()
@@ -119,7 +119,7 @@ def main():
     picks = pd.concat(picks).reset_index(drop=True)
     print(picks.groupby("stratum", sort=False).size().to_string())
 
-    lib = Library(str(ROOT / "data/eval/live-2026-10-03.db"))
+    lib = Library(str(DATA / "eval/live-2026-10-03.db"))
     jev = Jev(concurrency=16)
     out_path = Path(args.out)
     est_per_call = 1150 * 0.042 / 1e6

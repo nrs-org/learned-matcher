@@ -8,11 +8,11 @@ import json
 import lightgbm as lgb
 import pandas as pd
 
-from features import ROOT
+from features import DATA
 from policy import class_names, merge_guard, verdicts
 from structure import structure_probs
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--model", required=True)

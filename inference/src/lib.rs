@@ -1,8 +1,8 @@
 //! Native helpers for the soft-dedup scripts, packaged as a plain C-ABI cdylib.
 //!
 //! The cdylib exports a stable, language-independent C API; the host binds it
-//! at runtime through its generic `ffi` Rhai module (`config/match.learned.rhai`
-//! and `config/jev.rhai`). The crate has no dependency on rhai — values cross
+//! at runtime through its generic `ffi` Rhai module (`rhai/match.learned.rhai`
+//! and `rhai/jev.rhai`). The crate has no dependency on rhai — values cross
 //! the boundary only as plain C types, so there's no version/TypeId coupling
 //! between host and plugin.
 //!

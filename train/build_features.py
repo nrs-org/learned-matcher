@@ -11,14 +11,14 @@ from pathlib import Path
 
 import pandas as pd
 
-from features import ROOT, Encoder, Library, pair_features
+from features import DATA, Encoder, Library, pair_features
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--db", default=str(ROOT / "data/eval/live-2026-10-03.db"))
+    ap.add_argument("--db", default=str(DATA / "eval/live-2026-10-03.db"))
     ap.add_argument("--examples", default=str(OUT / "examples.jsonl"))
     ap.add_argument("--gold", action="append", default=None)
     args = ap.parse_args()
@@ -31,7 +31,7 @@ def main():
     examples = [json.loads(l) for l in Path(args.examples).read_text().splitlines()]
     gold = []
     for b in gold_batches:
-        gold += [json.loads(l) for l in (ROOT / f"data/eval/gold/{b}.items.jsonl").read_text().splitlines()]
+        gold += [json.loads(l) for l in (DATA / f"eval/gold/{b}.items.jsonl").read_text().splitlines()]
 
     # views
     view_cache = {}

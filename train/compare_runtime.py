@@ -1,4 +1,4 @@
-"""Compare a softmatch run of config/match.learned.rhai with the Python pool
+"""Compare a softmatch run of rhai/match.learned.rhai with the Python pool
 predictions (docs/plan-v15-runtime.md, phase 6).
 
     uv run python compare_runtime.py <softmatch.csv> [--model v17]
@@ -12,9 +12,9 @@ import argparse
 
 import pandas as pd
 
-from features import ROOT
+from features import DATA
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 
 
 def main():

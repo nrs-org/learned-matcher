@@ -18,7 +18,7 @@ import json
 
 import pandas as pd
 
-from features import ROOT, Library
+from features import DATA, Library
 from jev_client import Jev, build_view
 from sample_gold import RANGES, entry_card
 
@@ -41,12 +41,12 @@ def is_dev(e):
 
 
 def main():
-    db = ROOT / "data/eval/live-2026-10-03.db"
-    cand = pd.read_csv(ROOT / "data/eval/candidates-rhai-2026-10-03.csv", low_memory=False)
+    db = DATA / "eval/live-2026-10-03.db"
+    cand = pd.read_csv(DATA / "eval/candidates-rhai-2026-10-03.csv", low_memory=False)
     cand = cand[cand.verdict.isin(["MERGE", "RELATE", "DISTINCT"])]
     held = set()
     for b in ("human-v1", "adjudicated-v34"):
-        for l in open(ROOT / f"data/eval/gold/{b}.items.jsonl"):
+        for l in open(DATA / f"eval/gold/{b}.items.jsonl"):
             it = json.loads(l)
             held.update((it["a"]["entry_id"], it["b"]["entry_id"]))
     ok = [(is_dev(a) or is_dev(b)) and a not in held and b not in held for a, b in zip(cand.entry_a, cand.entry_b)]
@@ -108,7 +108,7 @@ def main():
         labels.append({"item_id": item_id, "type": typ, "identity": ident,
                        "kind": None if kind in (None, "not_applicable") else kind,
                        "note": f"jev {ans['choice']} conf={ans['confidence']:.2f}", "confidence": ans["confidence"]})
-    out = ROOT / "data/eval/gold"
+    out = DATA / "eval/gold"
     (out / f"{BATCH}.items.jsonl").write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in items))
     (out / f"{BATCH}.labels.jsonl").write_text("".join(json.dumps(x, ensure_ascii=False) + "\n" for x in labels))
     print(f"{len(items)} items; new calls {jev.calls}, cache hits {jev.cache_hits}, cost ${jev.cost():.4f}")

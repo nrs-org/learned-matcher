@@ -1,11 +1,13 @@
 //! Parity of the learned matcher against the Python reference fixtures
-//! (`train/learned-matcher/export_parity.py` → data/learned-matcher/parity/<model>/)
+//! (`train/export_parity.py` → data/learned-matcher/parity/<model>/)
 //! and the runtime bundle (`bundle.py` → data/learned-matcher/bundle/<model>/).
 //!
 //!     cargo test -p inference --features matcher --release --test matcher_parity -- --nocapture
 //!
 //! Skips (passes with a note) when the gitignored fixture or bundle is absent.
-//! Override locations with MATCHER_PARITY_DIR / MATCHER_BUNDLE_DIR.
+//! The data root is MUSICLIB_DATA (default: a musiclib-rs checkout next to this
+//! repo, as in train/paths.py); override single locations with
+//! MATCHER_PARITY_DIR / MATCHER_BUNDLE_DIR.
 #![cfg(feature = "matcher")]
 
 use std::collections::HashMap;
@@ -20,7 +22,12 @@ use serde_json::Value;
 const MODEL: &str = "v17";
 
 fn dirs() -> Option<(PathBuf, PathBuf)> {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data/learned-matcher");
+    let data = std::env::var("MUSICLIB_DATA")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../musiclib-rs/data")
+        });
+    let root = data.join("learned-matcher");
     let parity = std::env::var("MATCHER_PARITY_DIR")
         .map(PathBuf::from)
         .unwrap_or(root.join("parity").join(MODEL));

@@ -1,6 +1,6 @@
 //! Pair facts → views → pair features: a port of `view_from_facts` in
-//! `train/learned-matcher/export_parity.py` and `pair_features` in
-//! `train/learned-matcher/features.py`. Parity is checked against the
+//! `train/export_parity.py` and `pair_features` in
+//! `train/features.py`. Parity is checked against the
 //! exported fixtures (`tests/matcher_parity.rs`).
 
 use std::collections::{BTreeSet, HashMap, HashSet};

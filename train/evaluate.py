@@ -26,7 +26,9 @@ import numpy as np
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 import pandas as pd
 
-GOLD_DIR = Path(__file__).resolve().parents[2] / "data/eval/gold"
+from paths import DATA
+
+GOLD_DIR = DATA / "eval/gold"
 
 # Human label -> coarse class used by every metric.
 CLASS = {

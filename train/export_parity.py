@@ -27,12 +27,12 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from features import (DIM, ROOT, VIDEO_SOURCES, Encoder, Library, View, core_title,
+from features import (DIM, DATA, VIDEO_SOURCES, Encoder, Library, View, core_title,
                       pair_features)
 from policy import class_names, merge_guard, verdicts
 from structure import structure_probs
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 SCHEMA = "musiclib-pair-facts/1"
 
 
@@ -156,7 +156,7 @@ def load_library(db):
 def sample_pairs(model, per_stratum, seed):
     gold = []
     for b in ["human-v1", "adjudicated-v34", "silver-jev-v1"]:
-        for line in (ROOT / f"data/eval/gold/{b}.items.jsonl").read_text().splitlines():
+        for line in (DATA / f"eval/gold/{b}.items.jsonl").read_text().splitlines():
             it = json.loads(line)
             gold.append((it["a"]["entry_id"], it["b"]["entry_id"], it["type"], f"gold:{b}"))
     pool = pd.read_parquet(OUT / "models" / model / "pool_preds.parquet")
@@ -179,7 +179,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="v15-noorig")
     ap.add_argument("--rel", default="rel-noorig")
-    ap.add_argument("--db", default=str(ROOT / "data/eval/live-2026-10-03.db"))
+    ap.add_argument("--db", default=str(DATA / "eval/live-2026-10-03.db"))
     ap.add_argument("--per-stratum", type=int, default=150)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()

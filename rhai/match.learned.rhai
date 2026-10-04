@@ -5,13 +5,14 @@
 // facts, and owns the POLICY: merge thresholds, the DEFER band, how relation
 // heads become relate() metadata. Edit the policy here, not in Rust.
 //
-// Setup:
+// Setup (this repo, learned-matcher, checked out next to musiclib-rs):
 //   cargo build -p inference --release --lib   # `--features vulkan`: GPU blocking vectors
-//   (cd train/learned-matcher && uv run python bundle.py)   # → data/learned-matcher/bundle/v17
+//   (cd train && uv run python bundle.py)      # → $MUSICLIB_DATA/learned-matcher/bundle/v17
+//   # then, in musiclib-rs (the bundle path below is relative to its root):
 //   cargo build --release --features ffi
 //   MUSICLIB_MATCHER_BUNDLE=$PWD/data/learned-matcher/bundle/v17 \
 //     cargo run --release --features ffi --bin softmatch -- \
-//       --script config/match.learned.rhai
+//       --script ../learned-matcher/rhai/match.learned.rhai
 //
 // Semantic blocking (top-k neighbours) uses the matcher's title encoder (256-d)
 // on `title [A] artist` for tracks, the input it was trained on. The embedding
@@ -26,7 +27,7 @@
 //            direction head is confident, derived_side
 //   DISTINCT unrelated, or siblings (two versions of one song: no direct edge)
 //
-// Jev (config/jev.rhai, keep it next to this script): with TYPESAFE_API_KEY set
+// Jev (rhai/jev.rhai, keep it next to this script): with TYPESAFE_API_KEY set
 // and libinference.so built with the `typesafe` feature (on by default), refine() sends
 // every DEFER pair to TypeSafe's Jev and uses its answer instead. Answers are
 // cached in <cache_dir>/typesafe.db; init() logs whether Jev is on and why not.
@@ -311,7 +312,7 @@ fn refine(ctx, items) {
 // pairs (in parallel) and from refine() for the rest, with the final verdict.
 // Rows follow the scoring threads, not pair order. Pairs the host skips before
 // scoring (already linked, marked different, dedup barrier) have no row.
-// Quoting is config/csv.rhai (keep it next to this script).
+// Quoting is rhai/csv.rhai (keep it next to this script).
 
 fn csv_header() {
     [

@@ -18,9 +18,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
 
-from features import ROOT
+from features import DATA
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 META = {"tier", "type", "label", "kind", "derived", "split", "entry_a", "entry_b", "why", "item_id", "weight", "stratum", "batch"}
 KIND_MAP = {"cover": "cover", "instrumental": "instrumental", "live": "live", "remix": "remix", "edit": "edit",
             "arrangement": "arrangement", "other": "other", "alt_version": "other"}

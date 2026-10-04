@@ -5,7 +5,7 @@ Status: **implemented 2026-10-03** (see "Implementation" at the end). Model:
 twice during this work: v16 fixed a pad-token bug in the Python encoder, v17
 made the cosine features reproducible across implementations. Model history
 and evaluation: `plan-learned-matcher.md`. The runtime's verdicts match the
-Python pipeline (`train/learned-matcher/`) pair for pair on the parity fixture.
+Python pipeline (`train/`) pair for pair on the parity fixture.
 
 ## The three problems
 
@@ -23,7 +23,7 @@ Rust it is microseconds. The encoder must be native in any case. So:
 
 | Where | What |
 |---|---|
-| `config/inference` (cdylib) | pair facts cache, feature extraction, title encoder, LightGBM evaluator, relation heads. Returns numbers only. |
+| `inference` (cdylib) | pair facts cache, feature extraction, title encoder, LightGBM evaluator, relation heads. Returns numbers only. |
 | Rhai script | glue (send facts, ask for scores) and **policy**: per-type merge thresholds, DEFER band, generic-name guard → DEFER, DEFER → Jev, verdict and relation-metadata mapping. |
 
 The thresholds stay in the script because they will change when the human
@@ -33,7 +33,7 @@ Note: v15 has **no calibration step**. The thresholds in
 `models/v15/thresholds.json` apply to the raw softmax output. The evaluator
 only needs softmax.
 
-### C ABI (as built: `config/inference/src/matcher_abi.rs`)
+### C ABI (as built: `inference/src/matcher_abi.rs`)
 
 ```
 h  = inference_matcher_open(bundle_dir)      // NULL → inference_matcher_last_error()
@@ -72,7 +72,7 @@ pair-keyed. It mirrors the pair-centric DB, so it can serve any script, not
 only v15. Read from the DB on demand (with an LRU cache).
 
 Contract `musiclib-pair-facts/1` (reference: `pair_facts()` in
-`train/learned-matcher/export_parity.py`; golden output in the phase-1
+`train/export_parity.py`; golden output in the phase-1
 fixture `facts.jsonl`). Order matters wherever a list is listed as ordered:
 
 | field | value |
@@ -154,7 +154,7 @@ tie-breaks in "best aligned alias pair" can all diverge quietly.
 - `export_parity.py`: for ~2k pairs (gold + silver + a random pool sample),
   dump the facts JSON per pair, the 220 features, the 4 probabilities and the
   verdict.
-- Rust tests in `config/inference`, in this order: trees from Python features
+- Rust tests in `inference`, in this order: trees from Python features
   (isolates the evaluator), then the encoder (cosine ≥ 0.9999), then features
   from facts. Gate: every feature within 1e-5, every verdict identical.
 - End to end: run softmatch with the v15 script on `live-2026-10-03.db` and
@@ -209,12 +209,12 @@ All phases done; nothing committed yet.
 
 | Piece | Where |
 |---|---|
-| LightGBM evaluator, facts → features, title encoder (candle), C ABI | `config/inference/src/matcher/`, `matcher_abi.rs` (feature `matcher`) |
-| Parity tests (4 stages) | `config/inference/tests/matcher_parity.rs` |
-| Bundle (models + encoder) | `train/learned-matcher/bundle.py` → `data/learned-matcher/bundle/v17/` |
+| LightGBM evaluator, facts → features, title encoder (candle), C ABI | `inference/src/matcher/`, `matcher_abi.rs` (feature `matcher`) |
+| Parity tests (4 stages) | `inference/tests/matcher_parity.rs` |
+| Bundle (models + encoder) | `train/bundle.py` → `data/learned-matcher/bundle/v17/` |
 | Lazy `Entry` type, `pair_facts_json`, `defer(conf, reason)` | `src/pipeline/softmatch.rs`, `src/pipeline/pair_facts.rs`, `MusicDb::sqlite_path` |
-| Policy script | `config/match.learned.rhai` |
-| Runtime vs Python comparison | `train/learned-matcher/compare_runtime.py` |
+| Policy script | `rhai/match.learned.rhai` |
+| Runtime vs Python comparison | `train/compare_runtime.py` |
 
 Model changes forced by the port (details in `plan-learned-matcher.md`):
 - **v16**: the Python encoder attended pad tokens (batch-dependent vectors).

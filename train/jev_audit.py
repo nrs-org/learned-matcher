@@ -12,10 +12,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from features import ROOT, Library
+from features import DATA, Library
 from jev_client import Jev, build_view
 
-OUT = ROOT / "data/learned-matcher"
+OUT = DATA / "learned-matcher"
 V1_MAP = {"same_identity": "same", "related_variant": "related", "unrelated": "unrelated",
           "different_identity": "unrelated", "unsure": "unsure"}
 V2_MAP = {"same_identity": "same", "derived": "related", "sibling": "sibling", "unrelated": "unrelated",
@@ -56,7 +56,7 @@ def main():
     mdir = OUT / "models" / args.model
     th = json.loads((mdir / "thresholds.json").read_text())
 
-    lib = Library(str(ROOT / "data/eval/live-2026-10-03.db"))
+    lib = Library(str(DATA / "eval/live-2026-10-03.db"))
     examples = [json.loads(l) for l in (OUT / "examples.jsonl").read_text().splitlines()]
     feats = pd.read_parquet(OUT / "train_features.parquet", columns=["enc_title_max", "enc_max"])
     dev = pd.read_parquet(mdir / "dev_preds.parquet")
@@ -77,8 +77,8 @@ def main():
     # adjudicated (LLM labels) with model predictions on full entries
     gp = pd.read_csv(mdir / "gold_preds.csv").set_index("item_id")
     gp = gp[gp.index.str.startswith("adjudicated")]
-    labs = {json.loads(l)["item_id"]: json.loads(l)["identity"] for l in open(ROOT / "data/eval/gold/adjudicated-v34.labels.jsonl")}
-    for l in open(ROOT / "data/eval/gold/adjudicated-v34.items.jsonl"):
+    labs = {json.loads(l)["item_id"]: json.loads(l)["identity"] for l in open(DATA / "eval/gold/adjudicated-v34.labels.jsonl")}
+    for l in open(DATA / "eval/gold/adjudicated-v34.items.jsonl"):
         it = json.loads(l)
         g = {"same": "same", "related": "related", "different": "unrelated"}[labs[it["item_id"]]]
         p = gp.loc[it["item_id"]]

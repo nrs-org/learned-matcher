@@ -5,3 +5,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+/target
+.direnv
+.envrc
+.pre-commit-config.yaml

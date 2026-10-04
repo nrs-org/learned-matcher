@@ -1,5 +1,5 @@
 //! Python-compatible text helpers: a port of the string half of
-//! `train/learned-matcher/features.py`.
+//! `train/features.py`.
 //!
 //! Python's `re` and `str` differ from Rust's defaults, so the classes are
 //! spelled out:

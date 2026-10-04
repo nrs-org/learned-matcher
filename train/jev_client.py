@@ -24,12 +24,13 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from features import ROOT, Library
+from features import DATA, Library
+from paths import REPO
 
 API_URL = "https://api.typesafe.ai/v1/systemone"
 MODEL = "jev-latest"
 PRICE_PER_INPUT_TOKEN = 0.042 / 1e6
-CACHE = ROOT / "data/learned-matcher/jev_cache"
+CACHE = DATA / "learned-matcher/jev_cache"
 VIDEO_SOURCES = ("youtube", "nicovideo", "soundcloud")
 
 TOP_TITLES, CREDITED_NAMES_CAP, CHILD_TRACKS_CAP, TRACK_POSITIONS_CAP, HANDLES_CAP = 8, 8, 12, 5, 6
@@ -38,7 +39,8 @@ TOP_TITLES, CREDITED_NAMES_CAP, CHILD_TRACKS_CAP, TRACK_POSITIONS_CAP, HANDLES_C
 def api_key():
     if os.environ.get("TYPESAFE_API_KEY"):
         return os.environ["TYPESAFE_API_KEY"]
-    for line in (ROOT / ".env").read_text().splitlines():
+    env = REPO / ".env"
+    for line in (env.read_text().splitlines() if env.exists() else []):
         if line.startswith("TYPESAFE_API_KEY="):
             return line.split("=", 1)[1].strip().strip('"')
     raise RuntimeError("TYPESAFE_API_KEY not set")

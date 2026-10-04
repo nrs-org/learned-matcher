@@ -8,7 +8,7 @@ plan below: the client is `inference_typesafe_*` (not `_jev_`), and the view
 dedupes track positions by what Jev sees and treats YouTube video ids as
 opaque handles. Follow-up: the copied v1 prompts were replaced by prompt v2.1
 (the learned matcher's ontology: derived/sibling for tracks, identity-only for
-other types), kept in `config/jev/<type>.json` and sent in their written key
+other types), kept in `rhai/jev/<type>.json` and sent in their written key
 order; Jev's `derived` becomes a `derived_from` RELATE.
 
 ## Why
@@ -28,7 +28,7 @@ mapping are all fixed in Rust. Two problems follow:
 
 | Layer | Owns |
 |---|---|
-| **script** (`match.learned.rhai`, via `config/jev.rhai`) | Which pairs go to Jev, the evidence view, the questions/prompts, mapping Jev's answer to a verdict |
+| **script** (`match.learned.rhai`, via `rhai/jev.rhai`) | Which pairs go to Jev, the evidence view, the questions/prompts, mapping Jev's answer to a verdict |
 | **inference** (new feature `typesafe`) | The TypeSafe HTTP call, auth, retry/backoff, running requests concurrently, the response cache |
 | **musiclib** | A generic `refine` hook, plus pair facts. Knows nothing about Jev |
 
@@ -109,9 +109,9 @@ s  = inference_jev_ask_batch(h, requests_json)
 - **Tests:** `base_url` points at a local mock HTTP server. Cover cache hit
   and miss, errors mixed with successes in one batch, and a 429 retry.
 
-## 3. Script: `config/jev.rhai` + routing in `match.learned.rhai`
+## 3. Script: `rhai/jev.rhai` + routing in `match.learned.rhai`
 
-`config/jev.rhai` is a module (the engine already resolves `import`
+`rhai/jev.rhai` is a module (the engine already resolves `import`
 relative to the script):
 
 - `open()`: `ffi`-binds the functions above, reads `TYPESAFE_API_KEY`, and
@@ -156,7 +156,7 @@ turn off the matcher. With no `TYPESAFE_API_KEY`, nothing changes from today.
 2. inference `typesafe` feature + ABI + tests.
 3. `refine` hook + `origin`/`model_version` on verdict maps, with a
    host test using a tiny inline script.
-4. `config/jev.rhai` + routing in `match.learned.rhai`. Check parity: on a
+4. `rhai/jev.rhai` + routing in `match.learned.rhai`. Check parity: on a
    handful of pairs, the old `jev.rs` and new script views should produce the
    same request JSON. Do this before step 5.
 5. Remove `jev.rs` and its config/CLI/table. Update

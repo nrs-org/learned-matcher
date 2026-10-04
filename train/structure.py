@@ -6,14 +6,14 @@ sibling, swap-augmented); evaluated symmetrically."""
 import numpy as np
 import lightgbm as lgb
 
-from features import ROOT
+from features import DATA
 
 _cache = {}
 
 
 def _model(name):
     if name not in _cache:
-        path = ROOT / "data/learned-matcher/models" / name / "structure.txt"
+        path = DATA / "learned-matcher/models" / name / "structure.txt"
         _cache[name] = lgb.Booster(model_file=str(path)) if path.exists() else None
     return _cache[name]
 

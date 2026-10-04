@@ -6,7 +6,7 @@ item records its stratum's population size N_h and sample size n_h, so any
 metric can be estimated for the whole candidate population with weights
 N_h / n_h (Horvitz-Thompson), whatever model is later scored on it.
 
-    uv run --with pandas python train/learned-matcher/sample_gold.py \
+    uv run --with pandas python train/sample_gold.py \
         --candidates data/eval/candidates-rhai-2026-10-03.csv \
         --db data/eval/live-2026-10-03.db --batch human-v1 --out data/eval/gold
 """

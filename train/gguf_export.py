@@ -1,5 +1,5 @@
 """Export the title encoder as a vocabulary-less GGUF for llama.cpp (the
-inference cdylib's `vulkan` encoder backend, config/inference/src/matcher/gpu.rs).
+inference cdylib's `vulkan` encoder backend, inference/src/matcher/gpu.rs).
 
     uv run python gguf_export.py <encoder dir> [<out.gguf>]
 

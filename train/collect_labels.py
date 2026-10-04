@@ -3,8 +3,10 @@ data/eval/gold/<batch>.labels.jsonl."""
 import json, sys
 from pathlib import Path
 
+from paths import DATA
+
 batch, raw = sys.argv[1], Path(sys.argv[2])
-out = Path(__file__).resolve().parents[2] / f"data/eval/gold/{batch}.labels.jsonl"
+out = DATA / f"eval/gold/{batch}.labels.jsonl"
 rows = []
 for f in sorted(raw.rglob("*.json")):
     d = json.loads(f.read_text())

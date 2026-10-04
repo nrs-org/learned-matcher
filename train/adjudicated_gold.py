@@ -8,10 +8,9 @@ not sampled from the current candidate pool, so every item has weight 1.
 
 import json
 import sqlite3
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "data"
+from paths import DATA
+
 SNAP = DATA / "eval/live-2026-10-03.db"
 LABEL = {"same_identity": "same", "different_identity": "different"}
 

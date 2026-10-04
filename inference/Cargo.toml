@@ -10,7 +10,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# The two parts the soft-dedup scripts bind (config/match.learned.rhai).
+# The two parts the soft-dedup scripts bind (rhai/match.learned.rhai).
 default = ["matcher", "typesafe"]
 
 # Learned pair matcher (v17 + rel-v8; docs/plan-v15-runtime.md): LightGBM
