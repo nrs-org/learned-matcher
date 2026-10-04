@@ -30,6 +30,46 @@
         };
       });
 
+      # libinference.so with the Vulkan title encoder, in the store so it
+      # outlives `cargo clean`: `nix build . -o <gcroot>` (see README).
+      packages = forEachSystem (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+          };
+          inherit (pkgs) lib;
+        in
+        {
+          default = pkgs.rustPlatform.buildRustPackage {
+            pname = "inference";
+            inherit ((lib.importTOML ./inference/Cargo.toml).package) version;
+            src = lib.fileset.toSource {
+              root = ./.;
+              fileset = lib.fileset.unions [
+                ./Cargo.toml
+                ./Cargo.lock
+                ./inference
+              ];
+            };
+            cargoLock.lockFile = ./Cargo.lock;
+            cargoBuildFlags = [
+              "-p"
+              "inference"
+              "--lib"
+            ];
+            cargoTestFlags = [
+              "-p"
+              "inference"
+              "--lib"
+            ];
+            buildFeatures = [ "vulkan" ];
+            nativeBuildInputs = [ pkgs.pkg-config ];
+            buildInputs = [ pkgs.llama-cpp-vulkan ];
+          };
+        }
+      );
+
       devShells = forEachSystem (
         system:
         let

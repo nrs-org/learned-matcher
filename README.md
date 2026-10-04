@@ -40,8 +40,13 @@ and `ffi::open` paths resolve relative to that file's directory):
 cd ~/.config/musiclib-rs
 for f in jev.rhai jev csv.rhai; do ln -sfn ~/dev/nrs-org/learned-matcher/rhai/$f; done
 ln -sfn ~/dev/nrs-org/learned-matcher/rhai/match.learned.rhai match.rhai
-ln -sfn ~/dev/nrs-org/learned-matcher/target/release/libinference.so
+# the flake's package (Vulkan build) behind a GC root, so it outlives `cargo clean`;
+# re-run the `nix build` to update
+nix build ~/dev/nrs-org/learned-matcher -o ~/.local/share/musiclib-rs/inference
+ln -sfn ~/.local/share/musiclib-rs/inference/lib/libinference.so
 ```
+
+For a quick dev loop, link `target/release/libinference.so` instead.
 
 Run `softmatch` from the musiclib-rs root (the bundle's default path is
 relative to the CWD), or set `MUSICLIB_MATCHER_BUNDLE`. Jev refinement is on
