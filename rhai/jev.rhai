@@ -28,6 +28,10 @@ fn model_version() { "typesafe-jev/v2.1" }
 // Concurrent API calls per batch; MUSICLIB_JEV_CONCURRENCY overrides. The
 // cache path is MUSICLIB_JEV_CACHE, else <cache_dir>/typesafe.db.
 fn default_concurrency() { 12 }
+// Below this confidence a same_identity or derived answer stays DEFER: Jev's
+// top choice is often a near tie (885 merges under 0.5 in the 2026-10-04
+// full run), and only answers ≥0.95 were ~98% right in the PoC.
+fn min_confidence() { 0.95 }
 
 // Open the TypeSafe client through `lib` (an ffi library, or () to look for
 // libinference.so). Returns the client map, or () when Jev is unavailable.
@@ -153,6 +157,7 @@ fn request(qs, a, b) {
 //                                          `transformation` and the direction as `derived_side`
 //   sibling / unrelated / different_identity → DISTINCT (siblings get no direct edge)
 //   unsure                               → DEFER
+// A same_identity or derived answer below min_confidence() is DEFER too.
 fn to_verdict(resp, entry_type) {
     let answers = resp.answers;
     if type_of(answers) != "map" || !("identity" in answers) { return (); }
@@ -164,7 +169,9 @@ fn to_verdict(resp, entry_type) {
     let direction = choice_of(answers, "direction");
     let reason = model() + " v2.1: " + choice;
     if entry_type == "track" { reason += " (kind=" + kind + ", direction=" + direction + ")"; }
-    let v = if choice == "same_identity" {
+    let v = if ["same_identity", "derived"].contains(choice) && conf < min_confidence() {
+        defer(conf, reason + " below " + min_confidence())
+    } else if choice == "same_identity" {
         merge(conf, reason)
     } else if choice == "derived" {
         let meta = #{};
@@ -176,7 +183,11 @@ fn to_verdict(resp, entry_type) {
         if direction == "b_is_original" { meta.derived_side = "a"; }
         relate("derived_from", conf, reason, meta)
     } else if ["sibling", "unrelated", "different_identity"].contains(choice) {
-        distinct()
+        // Confidence and reason are for the CSV only; DISTINCT writes nothing.
+        let d = distinct();
+        d.confidence = conf;
+        d.reason = reason;
+        d
     } else {
         defer(conf, reason)
     };
