@@ -1,6 +1,6 @@
 """Assemble the runtime bundle the inference cdylib loads (`inference_matcher_open`).
 
-    uv run python bundle.py [--model v16 --rel rel-v7] [--out DIR]
+    uv run python bundle.py [--model v17 --rel rel-v8] [--out DIR]
 
 Default output: data/learned-matcher/bundle/<model>/
   manifest.json                     names, thresholds, kinds, output layout
@@ -22,8 +22,8 @@ OUT = ROOT / "data/learned-matcher"
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="v16")
-    ap.add_argument("--rel", default="rel-v7")
+    ap.add_argument("--model", default="v17")
+    ap.add_argument("--rel", default="rel-v8")
     ap.add_argument("--out")
     args = ap.parse_args()
     mdir, rdir = OUT / "models" / args.model, OUT / "models" / args.rel
