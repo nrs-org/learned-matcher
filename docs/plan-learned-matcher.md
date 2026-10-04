@@ -553,4 +553,53 @@ Found while porting to Rust (docs/plan-v15-runtime.md):
 - v17 pool: 9,680 MERGE / 27,347 RELATE / 10,489 SIBLING / 4,800 DEFER
   (cross-type pairs DISTINCT unscored).
 
-**Current runtime model: v17 + rel-v8** (`bundle.py` → data/learned-matcher/bundle/v17).
+### First full apply; `video_sides` leak → v19 (2026-10-04)
+
+The first `softmatch --apply` on the main library (v17 + Jev) found three
+separate problems:
+
+- **Jev confidence was ignored.** `jev.rhai` turned any `same_identity` or
+  `derived` answer into a verdict: 885 of 2,656 Jev merges were under 0.5
+  confidence. `min_confidence()` = 0.95 now; below it the pair stays DEFER.
+- **`video_sides` leaks the label construction for artists.** All 79k MB
+  artist negatives have no video-only side (MB labels need an MB id on both
+  sides), so `video_sides=1` pushed `p_same` by +2.8 log-odds. Pairs such as
+  `Mikito-P - Topic` × `環みちる` (no shared credits, name cosine 0.55) scored
+  0.98. Dropping the feature (v18a; v18b also drops `mv_minus_audio_s`)
+  did not fix it: artists found proxies, and ~370 correct track merges
+  (Topic audio × official MV, `Pray - Instrumental` × `Pray （Instrumental）`)
+  were lost.
+- **Soft merges chain** (largest group 49: one MV joined to every stem).
+  Downstream of the pair model; deferred.
+
+**v19** = the v17 recipe (`train.py --leaves 31 --drop orig`) plus 4,238 Jev
+labels taken free from the run's cached answers
+(`jev_labels_run20261004.jsonl`, merged into `jev_labels_all.jsonl`;
+`generate.py --jev .../jev_labels_all.jsonl`). The new artist labels are
+mostly confident `different_identity` on exactly the video-side, similar-name
+band (+1,134 artist negatives). v17's training files are kept in
+`data/learned-matcher/v17-data/`. The run CSV now carries Jev's confidence
+on DISTINCT answers too, so the next run's answers can be reused the same way.
+
+| | v17 | v19 |
+|---|---|---|
+| confident silver artists, merge P / R | 1.000 / 0.926 | 0.996 / 0.934 |
+| confident silver tracks, merge P / R | 0.986 / 0.919 | 0.987 / 0.926 |
+| library dry run, artist / track merges | 1,006 / 8,714 | 984 / 8,487 |
+| groups contradicting the run's own verdicts | 203 | 186 |
+
+At artist threshold 0.976 (v17's), v19 drops 49 of v17's artist merges,
+about 30 of them false (the whole Mikito-P group, `ろくろ` × `Kiroro`,
+`大石泉` × `OasisVEVO`); the true ones it drops sit at 0.96–0.975 and go to
+Jev. v19's own dev-chosen artist threshold (0.941) let in about 1 in 6
+wrong merges in 0.941–0.976 (`凛として時雨 / TK` × `Toru Kitajima`, a fan
+channel × `ハチ`), so the script keeps 0.976.
+
+Lesson: any feature that tells which tier an example came from is a leak.
+`video_sides` is one because the MB tier can't produce video-side pairs.
+Add the missing negatives rather than dropping the feature.
+
+**Current runtime model: v19 + rel-v8** (`bundle.py --model v19` →
+data/learned-matcher/bundle/v19, artist threshold 0.976 in
+`rhai/match.learned.rhai`). Published to
+`gbnam8/musiclib-learned-matcher`.

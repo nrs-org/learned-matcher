@@ -1,4 +1,4 @@
-// Learned soft-dedup verdicts: the v17 + rel-v8 pair classifier
+// Learned soft-dedup verdicts: the v19 + rel-v8 pair classifier
 // (docs/plan-learned-matcher.md, docs/plan-v15-runtime.md).
 //
 // The model runs in the inference cdylib; this script binds it, feeds it pair
@@ -7,10 +7,10 @@
 //
 // Setup (this repo, learned-matcher, checked out next to musiclib-rs):
 //   cargo build -p inference --release --lib   # `--features vulkan`: GPU blocking vectors
-//   (cd train && uv run python bundle.py)      # → $MUSICLIB_DATA/learned-matcher/bundle/v17
+//   (cd train && uv run python bundle.py)      # → $MUSICLIB_DATA/learned-matcher/bundle/v19
 //   # then, in musiclib-rs (the bundle path below is relative to its root):
 //   cargo build --release --features ffi
-//   MUSICLIB_MATCHER_BUNDLE=$PWD/data/learned-matcher/bundle/v17 \
+//   MUSICLIB_MATCHER_BUNDLE=$PWD/data/learned-matcher/bundle/v19 \
 //     cargo run --release --features ffi --bin softmatch -- \
 //       --script ../learned-matcher/rhai/match.learned.rhai
 //
@@ -25,7 +25,10 @@
 //            below it; refine() asks Jev about these (see below)
 //   RELATE   derived_from with the kind head's transformation and, when the
 //            direction head is confident, derived_side
-//   DISTINCT unrelated, or siblings (two versions of one song: no direct edge)
+//   DISTINCT unrelated, or siblings (two versions of one song: no direct edge),
+//            including any RELATE (model or Jev) between two entries the
+//            provider graph says derive from one original (see
+//            provider_siblings())
 //
 // Jev (rhai/jev.rhai, keep it next to this script): with TYPESAFE_API_KEY set
 // and libinference.so built with the `typesafe` feature (on by default), refine() sends
@@ -36,15 +39,18 @@
 // final verdict and the model's outputs (see csv_header()), for analysis.
 
 // Per-type merge thresholds on p_same: chosen on dev at 98% merge precision
-// (99% for artists) by train.py, models/v17/thresholds.json. Policy, not
+// (99% for artists) by train.py, models/v19/thresholds.json. Policy, not
 // model: raise one to merge less. Rhai top-level consts aren't visible inside
 // functions, so these live in init()'s context.
+// Artist stays at v17's 0.976, not v19's 0.941: on the 2026-10-04 library
+// about 1 in 6 artist merges between the two was wrong (TK ↔ Toru Kitajima,
+// a fan channel ↔ the artist); the band goes to Jev instead.
 fn thresholds() {
     #{
-        track: 0.828,
+        track: 0.812,
         artist: 0.976,
         release: 0.994,
-        release_group: 0.787,
+        release_group: 0.765,
     }
 }
 
@@ -110,7 +116,7 @@ fn open_matcher() {
     };
 
     let bundle = env_var("MUSICLIB_MATCHER_BUNDLE");
-    if bundle == "" { bundle = "data/learned-matcher/bundle/v17"; }   // relative to the CWD
+    if bundle == "" { bundle = "data/learned-matcher/bundle/v19"; }   // relative to the CWD
     let h = m.open.invoke([bundle]);
     if h.is_null() {
         throw "inference_matcher_open(" + bundle + "): " + m.last_error.invoke();
@@ -234,7 +240,7 @@ fn judge(ctx, a, b) {
 
     if p_same >= threshold {
         if o[c.guard] > 0.0 { return with_diag(defer(p_same, "learned: generic or placeholder name"), diag); }
-        return with_diag(merge(p_same, "learned v17"), diag);
+        return with_diag(merge(p_same, "learned v19"), diag);
     }
     let best = "related";
     let best_p = o[c.p_related];
@@ -242,6 +248,7 @@ fn judge(ctx, a, b) {
     if o[c.p_unrelated] > best_p { best = "unrelated"; best_p = o[c.p_unrelated]; }
     if p_same > best_p { return with_diag(defer(p_same, "learned: same leads below the merge threshold"), diag); }
     if best != "related" { return with_diag(distinct(), diag); }
+    if is_provider_siblings(a, b) { return with_diag(provider_distinct(), diag); }
 
     o = score(ctx, a, b, head_relation());
     let kind = "";
@@ -262,7 +269,27 @@ fn judge(ctx, a, b) {
     if kind != "other" { meta.transformation = kind; }
     if p_a - 0.5 > direction_margin() { meta.derived_side = "a"; }
     if 0.5 - p_a > direction_margin() { meta.derived_side = "b"; }
-    with_diag(relate("derived_from", best_p, "learned v17 (" + kind + ")", meta), diag)
+    with_diag(relate("derived_from", best_p, "learned v19 (" + kind + ")", meta), diag)
+}
+
+// Originals both sides derive from per the provider graph (MusicBrainz
+// cover / remix / arrangement relations, host fn relation_facts()). Two
+// covers of one song are siblings: each keeps its edge to the original, no
+// edge between them. The host never scores a pair the graph already links,
+// so this is the provider graph's remaining say on a pair. Empty on a host
+// without relation_facts().
+fn provider_siblings(a, b) {
+    let originals = [];
+    try { originals = relation_facts(a.entry_id, b.entry_id).shared_originals; } catch { }
+    originals
+}
+
+fn is_provider_siblings(a, b) { !provider_siblings(a, b).is_empty() }
+
+fn provider_distinct() {
+    let v = distinct();
+    v.reason = "provider: siblings (shared original)";
+    v
 }
 
 fn with_diag(v, diag) {
@@ -290,7 +317,15 @@ fn refine(ctx, items) {
         import "jev" as jev;
         try {
             let answers = jev::refine_pairs(ctx.jev, ask);
-            for k in 0..idx.len() { out[idx[k]] = answers[k]; }
+            for k in 0..idx.len() {
+                let it = items[idx[k]];
+                let v = answers[k];
+                // Jev is weak at derived vs sibling; the provider graph isn't.
+                if type_of(v) == "map" && v.verdict == "relate" && is_provider_siblings(it.a, it.b) {
+                    v = provider_distinct();
+                }
+                out[idx[k]] = v;
+            }
         } catch (err) {
             print("jev: batch of " + ask.len() + " failed, keeping the model's verdicts: " + err);
         }
